@@ -1,0 +1,77 @@
+# Build artifacts and compiled files
+*.o          
+# Object files created during compilation
+*.so         
+# Shared object files (dynamic libraries)
+*.a          
+# Static library files
+*.out        
+# Default executable output name
+*.exe        
+# Windows executable files
+
+# Build directories
+build/      
+# Build output directory
+bin/         
+# Binary/executable directory
+obj/         
+# Object files directory
+
+# Data files (likely generated during testing/runtime)
+*.dat        
+# Data files like disk.dat
+data/        
+# Data directory that might contain runtime data
+
+# Debug files
+*.dSYM/      
+# macOS debug symbols
+*.gdb        
+# GDB debug files
+core         
+# Core dump files
+
+# IDE and Editor files
+.vscode/     
+# Visual Studio Code settings
+.idea/       
+# IntelliJ/CLion settings
+*.swp        
+# Vim swap files
+*.swo        
+# Vim swap files
+*~           
+# Backup files
+.DS_Store    
+# macOS folder metadata
+
+# Operating System files
+Thumbs.db    
+# Windows thumbnail cache
+Desktop.ini  
+# Windows folder settings
+
+# Log files
+*.log        
+# Any log files that might be generated
+
+# Temporary files
+*.tmp        
+# Temporary files
+*.temp       
+# Temporary files
+.cache/      
+# Cache directories
+
+# Test artifacts
+test_output/ 
+# Directory for test outputs
+*.test       
+# Test executables
+
+# Backup files
+*.bak        
+# Backup files
+*.backup     
+# Backup files 
