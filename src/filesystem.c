@@ -75,12 +75,78 @@ bool fs_mount(filesystem_t *fs, disk_t *disk) {
     // read superblock
     if (disk_read(disk, 0, block) < 0) return false;
 
-    memcpy(&fs->sb, block, sizeof(superblock_t));
+    memcpy(fs->sb, block, sizeof(superblock_t));
 
     // verify bitmap memory
-    if (fs->sb.magic_number != MAGIC_NUMBER) return false;
+    if (fs->sb->magic_number != MAGIC_NUMBER) return false;
 
+    // Allocate bitmap memory 
+    fs->inode_bitmap = malloc(BLOCK_SIZE);
+    fs->data_bitmap = malloc(BLOCK_SIZE);
+
+    if (!fs->inode_bitmap || !fs->data_bitmap) {
+        free(fs->inode_bitmap);
+        free(fs->data_bitmap);
+        perror("Failed to allocate bitmap memory");
+        return false;
+    }
+
+    // Read bitmaps
+    if (disk_read(disk, 1, (char *)fs->inode_bitmap) < 0) return false;
+    if (disk_read(disk, 2, (char *)fs->data_bitmap) < 0) return false;
     
+    fs->disk = disk;
+    fs->mounted = true;
+    disk->mounted = true;
+
+    return true;
 }
 
+void fs_unmount(filesystem_t *fs) {
+    if (fs && fs->mounted) {
+        // write bitmaps back to the disk
+        disk_write(fs->disk, 1, (char *)fs->inode_bitmap);
+        disk_write(fs->disk, 2, (char *)fs->data_bitmap);
+
+        free(fs->inode_bitmap);
+        free(fs->data_bitmap);
+
+        fs->disk->mounted = false;
+        fs->mounted = false;
+    }
+}
+
+
+int fs_create(filesystem_t *fs) {
+    if (!fs || !fs->mounted) {
+        return -1;
+    }
+
+    // Find free inode
+    int inode_num = bitmap_find_free(fs->inode_bitmap, BLOCK_SIZE);
+    if (inode_num < 0) return -1;
+
+    // Mark inode as used
+    bitmap_set(fs->inode_bitmap, inode_num);
+
+    // Initialize inode
+    inode_t inode; 
+    memset(&inode, 0, sizeof(inode_t));
+    inode.valid = 1;
+    inode.mode = 0644;
+    inode.size = 0;
+    inode.ctime = inode.mtime = inode.atime = time(NULL);
+
+    // write inode to disk 
+    char block[BLOCK_SIZE];
+    uint32_t inode_block = 3 + (inode_num / INODES_PER_BLOCK);
+    uint32_t inode_offset = (inode_num % INODES_PER_BLOCK) * sizeof(inode_t);
+
+    if (disk_read(fs->disk, inode_block, block) < 0) return -1;
+    memcpy(block + inode_offset, &inode, sizeof(inode_t));
+    if (disk_write(fs->disk, inode_block, block) < 0) return -1;
+
+    return inode_num;
+
+}
 
